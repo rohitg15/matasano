@@ -1,6 +1,7 @@
 import sys
 import struct
 import base64
+from Crypto.Cipher import AES
 
 
 def base64_to_hex(data):
@@ -14,7 +15,25 @@ def ASCII_to_bytearray(data):
     
 def bytearray_to_ASCII(data):
     op = [chr(byte) for byte in data]
-    return ''.join(op)   
+    return ''.join(op)
+    
+    
+def AES_ECB_encrypt(plain_text,bkey):
+    """
+        data    :   bytearray
+        key     :   bytearray
+    """
+    cipher = AES.new(bkey,AES.MODE_ECB)
+    return cipher.encrypt(plain_text)
+ 
+def AES_ECB_decrypt(cipher_text,bkey):
+    """
+        data    :   bytearray
+        key     :   bytearray
+    """
+    cipher = AES.new(bkey,AES.MODE_ECB)
+    return cipher.decrypt(cipher_text)
+ 
  
 def single_byte_xor(data,key):
     """
@@ -87,6 +106,19 @@ def brute_single_byte_xor_heuristic(data):
     pt = max(score_table,key=lambda k: score_table[k][0])
     return pt, score_table[pt][0], score_table[pt][1]
     
+    
+def repeating_key_xor(input,key):
+    """
+        input   :   bytearray
+        key     :   bytearray
+    """
+   
+    sz_input = len(input)
+    sz_key = len(key)
+    op = []
+    for i in range(sz_input):
+        op.append(input[i] ^ key[i % sz_key])
+    return op
         
 def equal_size_xor(buf1,buf2):
     """
