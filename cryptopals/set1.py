@@ -69,6 +69,23 @@ I go crazy when I hear a cymbal'''
         print "c5 failed!"
         
         
+        
+def c6(filename):
+    f = open(filename,"r")
+    b64data = f.readlines()
+    f.close()
+    
+    data = []
+    for line in b64data:
+        data.append(base.base64_to_hex(line.strip('\n')).decode('hex'))
+    data = ''.join(data)
+    
+    key_size = base.brute_repeating_key_xor(bytearray(data))
+    tbytes = base.transpose(bytearray(data),key_size)
+    
+    print base.brute_single_byte_xor(tbytes[0:key_size])
+        
+        
 def c7(filename):
     f = open(filename,"r")
     data = f.readlines()
@@ -81,13 +98,40 @@ def c7(filename):
     
     print bplaintext
     
+def c8(filename):
+    key = "YELLOW SUBMARINE"
+    f = open(filename,"r")
+    data = f.readlines()
+    f.close()
+
+    block_size = 16
+    count = 0
+    op = []
+    for line in data:
+        count += 1
+        line = line.strip()
+        vis = {}
+        blocks = [str(line[i*block_size : (i+1)*block_size ]) for i in range(int( len(line) / block_size) )]
+        for block in blocks:
+            if vis.has_key(block):
+                op.append((line,count))
+                break
+            else:
+                vis[block] = True
+            
+    for line,num in op:
+        print line , num
+    #print base.AES_ECB_decrypt(max_key.decode('hex'), key)
     
     
+
 if __name__ == "__main__":
-    c1()
-    c2()
-    c3()
-    c4("ip4.txt")
-    c5()
-    c7("ip7.txt")
-    
+  #  c1()
+  #  c2()
+  #  c3()
+  #  c4("ip4.txt")
+  #  c5()
+  #  c7("ip7.txt")
+  #  c6("ip6.txt")
+  c8("ip8.txt")
+  

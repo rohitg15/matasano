@@ -126,3 +126,56 @@ def equal_size_xor(buf1,buf2):
         buf2    :   bytearray
     """
     return [byte1 ^ byte2 for (byte1,byte2) in zip(buf1,buf2)]
+    
+
+
+def count_one(byte):
+    count = 0
+    
+    while byte:
+        count += 1
+        byte &= byte -1
+
+    return count
+    
+def hamming_distance(b1,b2):
+    """
+        b1  :   bytearray
+        b2  :   bytearray
+    """
+    count  = 0
+    bres = equal_size_xor(b1,b2)
+    for byte in bres:
+        count += count_one(byte)
+    return count
+    
+
+def transpose(bdata,offset):
+   
+    size = len(bdata)
+    op = [0] * size
+    j = 0
+    for i in range(size):
+        idx = j + offset * (i%offset)
+        if idx > size:
+            j += 1
+        op[i] = bdata[j]
+    return op
+    
+    
+def brute_repeating_key_xor(bdata):
+    """
+        bdata   :   bytearray
+    """
+    
+    ht = {}
+    for keysize in range(2,41):
+        left = bdata[0:keysize]
+        right = bdata[keysize:keysize*2]
+        ham = hamming_distance(left,right) / keysize
+        ht[keysize] = ham
+        
+    min_key_size = min(ht, key=lambda k: ht[k])
+    return min_key_size    
+    
+        
