@@ -176,6 +176,21 @@ def brute_repeating_key_xor(bdata):
         ht[keysize] = ham
         
     min_key_size = min(ht, key=lambda k: ht[k])
-    return min_key_size    
+    return min_key_size
     
-        
+    
+def pkcs7_pad(text , block_size):
+    """
+        performs a pkcs#7 padding and returns the modified text with 
+        appropriate padding bytes added
+    """
+    size = len(text)
+    padding_len = (block_size - (size % block_size))     
+    return text + chr(padding_len) * padding_len
+
+def pkcs7_unpad(text):
+    """
+        This function assumes that a PKCS#7 padding was already used on text
+        and strips the padding bytes in order to return the original data
+    """
+    return text[0 : -ord(text[-1])]    
