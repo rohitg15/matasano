@@ -2,6 +2,9 @@ import sys
 import struct
 import base64
 from Crypto.Cipher import AES
+from Crypto import Random
+from random import randint
+import json
 
 
 def base64_to_hex(data):
@@ -194,3 +197,77 @@ def pkcs7_unpad(text):
         and strips the padding bytes in order to return the original data
     """
     return text[0 : -ord(text[-1])]    
+
+
+def encryption_oracle(input):
+    rand_num1 = randint(5,10)
+    rand_num2 = randint(5,10)
+    encrypt_ecb = randint(0,1)
+    before = pkcs7_pad("",rand_num1)
+    after = pkcs7_pad("",rand_num2)
+    
+    ciphertext = ''
+    iv = ''
+    key = Random.get_random_bytes(16)
+    modified_input = before + input + after
+    padded_input = pkcs7_pad(modified_input,16)
+        
+    # encrypt ECB
+    if encrypt_ecb == 1:
+        encryptor = AES.new(key,AES.MODE_ECB)
+        ciphertext = encryptor.encrypt(padded_input)
+        print "ECB here"
+    else :
+    # encrypt CBC
+        iv = Random.get_random_bytes(16)
+        encryptor = AES.new(key,AES.MODE_CBC,iv)
+        ciphertext = encryptor.encrypt(padded_input)
+        print "CBC here"
+
+    return key,iv,ciphertext
+    
+def detect_block_cipher_mode(ciphertext):
+    block_size = 16
+    blocks = [ciphertext[i*block_size : (i+1)*block_size] for i in range(len(ciphertext)/block_size)]
+    
+    if len(set(blocks)) != len(blocks):
+        # True implies ECB
+        return True
+    # False implies CBC
+    return False
+
+
+ecb_key = Random.get_random_bytes(16)
+def AES_128_ECB(input):
+    padded_input = pkcs7_pad(input,16)
+    encryptor = AES.new(ecb_key,AES.MODE_ECB)
+    return encryptor.encrypt(padded_input)
+
+
+def kvparser(input):
+    kvpairs = input.split('&')
+    d = {}
+    for kv in kvpairs:
+        key,value = kv.split('=')
+        d[key] = value
+    return json.dumps(d)
+
+
+def sanitize(email):
+    pos = email.find('&')
+    if pos == -1:
+        return email
+    return sanitize(email[0 : pos] + email[pos+1:])
+
+def profile_for(email):
+    filtered_email = sanitize(email)
+    uid = randint(0,100)
+    role = 'user'
+
+    profile = 'email=' + filtered_email + "&" + "uid=" + uid + "&role=" + role
+
+      
+
+
+
+    
