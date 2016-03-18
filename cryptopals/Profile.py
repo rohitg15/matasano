@@ -19,12 +19,16 @@ def sanitize(email):
 	return new_email
 
 def parse(cookie):
-	kvpairs = cookie.split('&')
-	p = Profile()
-	for kv in kvpairs:
-		if '=' in kv:
-			key,value = kv.split('=')
-			setattr(p,key,value)
+	try:
+		kvpairs = cookie.split('&')
+		p = Profile()
+		for kv in kvpairs:
+			if '=' in kv:
+				#print "kv:" , kv
+				key,value = kv.split('=')
+				setattr(p,key,value)
+	except:
+		return None
 
 	return p
 
