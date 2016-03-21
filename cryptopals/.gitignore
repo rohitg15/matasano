@@ -1,0 +1,9 @@
+*.pyc
+*.o
+*.so
+*.DS_Store
+*.gz
+*.tar
+*.class
+*.zip
+*.com
