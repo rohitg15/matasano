@@ -286,12 +286,45 @@ def c15(s):
     print "exception!"
     raise Exception
 
+
+def c16():
+  """
+    This function attempts to crack AES in CBC using bit flipping
+  """
+  data = ";adminttrue"
+  blk_size = 16
+  ciphertext = base.enc_input(data)
+  # perform bit flipping here
+  # we can see that the character at index 34 is the one we need to replace
+  pos  = 34
+  # the correspinding character in the previous block has to be modified
+  # this works only if the target is in any block except the first
+  # we want to change the character at position 35 to a ;
+  prev_sc = ((pos/blk_size) - 1)*blk_size + (pos%blk_size)
+  flip_sc = chr(ord(ciphertext[prev_sc]) ^ ord('B') ^ ord(';'))
+
+  # we need to flip the character at index 41 to =
+  # the corresponding position in the previous block is found as before
+  pos = 40
+  prev_eq = ((pos/blk_size) - 1)*blk_size + (pos%blk_size)
+  flip_eq = chr(ord(ciphertext[prev_eq]) ^ ord('t') ^ ord('='))
+
+  ct = ciphertext[:prev_sc] + flip_sc + ciphertext[prev_sc+1:prev_eq] + flip_eq + ciphertext[prev_eq+1:]
+
+  op = base.dec_input(ct)
+  if op == -1:
+    print "failed: CBC bit flipping failed!"
+  else:
+    print "success: privilege escalated to admin"
+
+
 if __name__ == "__main__":
     # c9()
     # c10("ip10.txt")
     # c11()
-    c12()
+    #c12()
     #c13()
     #c13_enhanced()
     #c14()
     #c15("ICE ICE BABY\x04\x04\x04\x04")
+    c16()
