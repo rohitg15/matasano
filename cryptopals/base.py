@@ -294,4 +294,54 @@ def dec_input(data):
     return plaintext.find(";admin=true")
 
 
+def is_padded(s):
+     # if PKCS#7 padding were used then the last byte must indicate the same
+    pad_chr = s[-1]
+    size = ord(pad_chr)
+    # the last size bytes must be equal to size for a valid PKCS#7 padding
+    # if not, we have wrong padding here
+    try:
+        for i in range(size):
+            if ord(s[-i-1]) != size:
+                return False
+    except:
+        return False
+    return True
+
+def c17_encrypt_oracle(pt):
+    key = ecb_key
+    iv = Random.get_random_bytes(16)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    padded_pt = pkcs7_pad(pt)
+    return cipher.encrypt(padded_pt), iv
+
+def c17_decrypt_oracle(ct,iv):
+    key = ecb_key
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    pt = cipher.decrypt(ct)
+    if is_padded(pt) == True:
+        #print "decrypted:",pkcs7_unpad(pt)
+        return True
+    else :
+        return False
+
+def solve_po(cur, prev, pos, guess, padding, bsize, iv, sol):
+  if pos < 0 or pos >= bsize:
+    sol.append(guess[::-1])
+    return True
+  tail = prev[pos + 1 : ]
+  # pad the tail appropriately
+  ptail = ''.join( [ chr( ( ord(prev[i]) ^ ord(guess[bsize - i - 1]) ^ padding) % 256 ) for i in range(pos+1,bsize) ] )
+  # brute force pos with all 256 possible bytes
+  for byte in range(256):
+    brute = chr( ( ord(prev[pos]) ^ padding ^ byte )%256 )
+    temp = prev[:pos] + brute + ptail + cur
+    # if a byte succeeds, it may be a False positive
+    # so we recursively check using DFS, for all possible matches
+    # we use backtracking to ensure that a wrong path is not
+    # fully enumerated
+    if c17_decrypt_oracle(temp, iv):
+      if solve_po(cur, prev, pos-1, guess + chr(byte), padding + 1, bsize, iv, sol):
+        return True
+  return False
 
