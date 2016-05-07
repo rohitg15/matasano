@@ -8,51 +8,55 @@ import json
 
 
 def base64_to_hex(data):
-   return base64.b64decode(data).encode('hex')
+    return base64.b64decode(data).encode('hex')
+
 
 def hex_to_base64(data):
     return base64.b64encode(data.decode('hex'))
 
+
 def ASCII_to_bytearray(data):
     return bytearray(data)
+
 
 def bytearray_to_ASCII(data):
     op = [chr(byte) for byte in data]
     return ''.join(op)
 
 
-def AES_ECB_encrypt(plain_text,bkey):
+def AES_ECB_encrypt(plain_text, bkey):
     """
         data    :   bytearray
         key     :   bytearray
     """
-    cipher = AES.new(bkey,AES.MODE_ECB)
+    cipher = AES.new(bkey, AES.MODE_ECB)
     return cipher.encrypt(plain_text)
 
-def AES_ECB_decrypt(cipher_text,bkey):
+
+def AES_ECB_decrypt(cipher_text, bkey):
     """
         data    :   bytearray
         key     :   bytearray
     """
-    cipher = AES.new(bkey,AES.MODE_ECB)
+    cipher = AES.new(bkey, AES.MODE_ECB)
     return cipher.decrypt(cipher_text)
 
 
-def single_byte_xor(data,key):
+def single_byte_xor(data, key):
     """
         data    :   bytearray
         key     :   single byte
     """
     return [byte ^ key for byte in data]
 
-def brute_single_byte_xor(data,heuristic = 0):
+
+def brute_single_byte_xor(data, heuristic=0):
     """
         data    :   bytearray
     """
     for key in range(256):
         opbytes = [byte ^ key for byte in data]
-        print bytearray_to_ASCII(opbytes) , key
-
+        print bytearray_to_ASCII(opbytes), key
 
 
 def score(plaintext):
@@ -60,33 +64,33 @@ def score(plaintext):
         plaintext   :   ASCII
     """
     char_freq = {}
-    char_freq['a']=834
-    char_freq['b']=154
-    char_freq['c']=273
-    char_freq['d']=414
-    char_freq['e']=1260
-    char_freq['f']=203
-    char_freq['g']=192
-    char_freq['h']=611
-    char_freq['i']=671
-    char_freq['j']=23
-    char_freq['k']=87
-    char_freq['l']=424
-    char_freq['m']=253
-    char_freq['n']=680
-    char_freq['o']=770
-    char_freq['p']=166
-    char_freq['q']=9
-    char_freq['r']=568
-    char_freq['s']=611
-    char_freq['t']=937
-    char_freq['u']=285
-    char_freq['v']=106
-    char_freq['w']=234
-    char_freq['x']=20
-    char_freq['y']=204
-    char_freq['z']=6
-    char_freq[' ']=2320
+    char_freq['a'] = 834
+    char_freq['b'] = 154
+    char_freq['c'] = 273
+    char_freq['d'] = 414
+    char_freq['e'] = 1260
+    char_freq['f'] = 203
+    char_freq['g'] = 192
+    char_freq['h'] = 611
+    char_freq['i'] = 671
+    char_freq['j'] = 23
+    char_freq['k'] = 87
+    char_freq['l'] = 424
+    char_freq['m'] = 253
+    char_freq['n'] = 680
+    char_freq['o'] = 770
+    char_freq['p'] = 166
+    char_freq['q'] = 9
+    char_freq['r'] = 568
+    char_freq['s'] = 611
+    char_freq['t'] = 937
+    char_freq['u'] = 285
+    char_freq['v'] = 106
+    char_freq['w'] = 234
+    char_freq['x'] = 20
+    char_freq['y'] = 204
+    char_freq['z'] = 6
+    char_freq[' '] = 2320
 
     points = 0
     plaintext = plaintext.lower()
@@ -96,6 +100,7 @@ def score(plaintext):
 
     return points
 
+
 def brute_single_byte_xor_heuristic(data):
     """
         data    :   bytearray
@@ -104,13 +109,13 @@ def brute_single_byte_xor_heuristic(data):
     for key in range(256):
         opbytes = [byte ^ key for byte in data]
         plaintext = bytearray_to_ASCII(opbytes)
-        score_table[plaintext] = (score(plaintext),key)
+        score_table[plaintext] = (score(plaintext), key)
 
-    pt = max(score_table,key=lambda k: score_table[k][0])
+    pt = max(score_table, key=lambda k: score_table[k][0])
     return pt, score_table[pt][0], score_table[pt][1]
 
 
-def repeating_key_xor(input,key):
+def repeating_key_xor(input, key):
     """
         input   :   bytearray
         key     :   bytearray
@@ -123,13 +128,13 @@ def repeating_key_xor(input,key):
         op.append(input[i] ^ key[i % sz_key])
     return op
 
-def equal_size_xor(buf1,buf2):
+
+def equal_size_xor(buf1, buf2):
     """
         buf1    :   bytearray
         buf2    :   bytearray
     """
-    return [byte1 ^ byte2 for (byte1,byte2) in zip(buf1,buf2)]
-
+    return [byte1 ^ byte2 for (byte1, byte2) in zip(buf1, buf2)]
 
 
 def count_one(byte):
@@ -137,29 +142,30 @@ def count_one(byte):
 
     while byte:
         count += 1
-        byte &= byte -1
+        byte &= byte - 1
 
     return count
 
-def hamming_distance(b1,b2):
+
+def hamming_distance(b1, b2):
     """
         b1  :   bytearray
         b2  :   bytearray
     """
-    count  = 0
-    bres = equal_size_xor(b1,b2)
+    count = 0
+    bres = equal_size_xor(b1, b2)
     for byte in bres:
         count += count_one(byte)
     return count
 
 
-def transpose(bdata,offset):
+def transpose(bdata, offset):
 
     size = len(bdata)
     op = [0] * size
     j = 0
     for i in range(size):
-        idx = j + offset * (i%offset)
+        idx = j + offset * (i % offset)
         if idx > size:
             j += 1
         op[i] = bdata[j]
@@ -172,17 +178,17 @@ def brute_repeating_key_xor(bdata):
     """
 
     ht = {}
-    for keysize in range(2,41):
+    for keysize in range(2, 41):
         left = bdata[0:keysize]
-        right = bdata[keysize:keysize*2]
-        ham = hamming_distance(left,right) / keysize
+        right = bdata[keysize:keysize * 2]
+        ham = hamming_distance(left, right) / keysize
         ht[keysize] = ham
 
     min_key_size = min(ht, key=lambda k: ht[k])
     return min_key_size
 
 
-def pkcs7_pad(text , block_size=16):
+def pkcs7_pad(text, block_size=16):
     """
         performs a pkcs#7 padding and returns the modified text with
         appropriate padding bytes added
@@ -191,44 +197,44 @@ def pkcs7_pad(text , block_size=16):
     padding_len = (block_size - (size % block_size))
     return text + chr(padding_len) * padding_len
 
+
 def pkcs7_unpad(text):
     """
         This function assumes that a PKCS#7 padding was already used on text
         and strips the padding bytes in order to return the original data
     """
-    return text[0 : -ord(text[-1])]
+    return text[0: -ord(text[-1])]
 
 
 def encryption_oracle(input):
-    rand_num1 = randint(5,10)
-    rand_num2 = randint(5,10)
-    encrypt_ecb = randint(0,1)
-    before = pkcs7_pad("",rand_num1)
-    after = pkcs7_pad("",rand_num2)
+    rand_num1 = randint(5, 10)
+    rand_num2 = randint(5, 10)
+    encrypt_ecb = randint(0, 1)
+    before = pkcs7_pad("", rand_num1)
+    after = pkcs7_pad("", rand_num2)
 
     ciphertext = ''
     iv = ''
     key = Random.get_random_bytes(16)
     modified_input = before + input + after
-    padded_input = pkcs7_pad(modified_input,16)
-
-    # encrypt ECB
+    padded_input = pkcs7_pad(modified_input, 16)
     if encrypt_ecb == 1:
-        encryptor = AES.new(key,AES.MODE_ECB)
+        # encrypt ECB
+        encryptor = AES.new(key, AES.MODE_ECB)
         ciphertext = encryptor.encrypt(padded_input)
         print "ECB here"
-    else :
-    # encrypt CBC
+    else:
+        # encrypt CBC
         iv = Random.get_random_bytes(16)
-        encryptor = AES.new(key,AES.MODE_CBC,iv)
+        encryptor = AES.new(key, AES.MODE_CBC, iv)
         ciphertext = encryptor.encrypt(padded_input)
         print "CBC here"
 
-    return key,iv,ciphertext
+    return key, iv, ciphertext
 
 def detect_block_cipher_mode(ciphertext):
     block_size = 16
-    blocks = [ciphertext[i*block_size : (i+1)*block_size] for i in range(len(ciphertext)/block_size)]
+    blocks = [ciphertext[i * block_size : (i + 1) * block_size] for i in range(len(ciphertext) / block_size)]
 
     if len(set(blocks)) != len(blocks):
         # True implies ECB
@@ -238,9 +244,11 @@ def detect_block_cipher_mode(ciphertext):
 
 
 ecb_key = Random.get_random_bytes(16)
+
+
 def AES_128_ECB(input):
-    padded_input = pkcs7_pad(input,16)
-    encryptor = AES.new(ecb_key,AES.MODE_ECB)
+    padded_input = pkcs7_pad(input, 16)
+    encryptor = AES.new(ecb_key, AES.MODE_ECB)
     return encryptor.encrypt(padded_input)
 
 
@@ -248,7 +256,7 @@ def kvparser(input):
     kvpairs = input.split('&')
     d = {}
     for kv in kvpairs:
-        key,value = kv.split('=')
+        key, value = kv.split('=')
         d[key] = value
     return json.dumps(d)
 
@@ -257,11 +265,12 @@ def sanitize(email):
     pos = email.find('&')
     if pos == -1:
         return email
-    return sanitize(email[0 : pos] + email[pos+1:])
+    return sanitize(email[0: pos] + email[pos + 1:])
+
 
 def profile_for(email):
     filtered_email = sanitize(email)
-    uid = randint(0,100)
+    uid = randint(0, 100)
     role = 'user'
 
     profile = 'email=' + filtered_email + "&" + "uid=" + uid + "&role=" + role
@@ -269,9 +278,9 @@ def profile_for(email):
 
 def quote(s):
     # replace ';'
-    temp = s.replace(';',"%3B")
-    #temp = temp.replace('=',"%3D")
+    temp = s.replace(';', "%3B")
     return temp
+
 
 def enc_input(data):
 
@@ -279,14 +288,15 @@ def enc_input(data):
     suffix = ";comment2=%20like%20a%20pound%20of%20bacon"
     plaintext = prefix + quote(data) + suffix
     cbc_key = ecb_key
-    iv = "A"*16
-    encryptor = AES.new(cbc_key, AES.MODE_CBC,iv)
+    iv = "A" * 16
+    encryptor = AES.new(cbc_key, AES.MODE_CBC, iv)
     padded_plaintext = pkcs7_pad(plaintext)
     return encryptor.encrypt(padded_plaintext)
 
+
 def dec_input(data):
 
-    iv = "A"*16
+    iv = "A" * 16
     cbc_key = ecb_key
     decryptor = AES.new(cbc_key, AES.MODE_CBC, iv)
     padded_plaintext = decryptor.decrypt(data)
@@ -295,18 +305,19 @@ def dec_input(data):
 
 
 def is_padded(s):
-     # if PKCS#7 padding were used then the last byte must indicate the same
+    # if PKCS#7 padding were used then the last byte must indicate the same
     pad_chr = s[-1]
     size = ord(pad_chr)
     # the last size bytes must be equal to size for a valid PKCS#7 padding
     # if not, we have wrong padding here
     try:
         for i in range(size):
-            if ord(s[-i-1]) != size:
+            if ord(s[-i - 1]) != size:
                 return False
     except:
         return False
     return True
+
 
 def c17_encrypt_oracle(pt):
     key = ecb_key
@@ -315,33 +326,30 @@ def c17_encrypt_oracle(pt):
     padded_pt = pkcs7_pad(pt)
     return cipher.encrypt(padded_pt), iv
 
-def c17_decrypt_oracle(ct,iv):
+
+def c17_decrypt_oracle(ct, iv):
     key = ecb_key
     cipher = AES.new(key, AES.MODE_CBC, iv)
     pt = cipher.decrypt(ct)
-    if is_padded(pt) == True:
-        #print "decrypted:",pkcs7_unpad(pt)
-        return True
-    else :
-        return False
+    return is_padded(pt)
+
 
 def solve_po(cur, prev, pos, guess, padding, bsize, iv, sol):
-  if pos < 0 or pos >= bsize:
-    sol.append(guess[::-1])
-    return True
-  tail = prev[pos + 1 : ]
-  # pad the tail appropriately
-  ptail = ''.join( [ chr( ( ord(prev[i]) ^ ord(guess[bsize - i - 1]) ^ padding) % 256 ) for i in range(pos+1,bsize) ] )
-  # brute force pos with all 256 possible bytes
-  for byte in range(256):
-    brute = chr( ( ord(prev[pos]) ^ padding ^ byte )%256 )
-    temp = prev[:pos] + brute + ptail + cur
-    # if a byte succeeds, it may be a False positive
-    # so we recursively check using DFS, for all possible matches
-    # we use backtracking to ensure that a wrong path is not
-    # fully enumerated
-    if c17_decrypt_oracle(temp, iv):
-      if solve_po(cur, prev, pos-1, guess + chr(byte), padding + 1, bsize, iv, sol):
+    if pos < 0 or pos >= bsize:
+        sol.append(guess[::-1])
         return True
-  return False
+    # pad the tail appropriately
+    ptail = ''.join([ chr( ( ord(prev[i]) ^ ord(guess[bsize - i - 1]) ^ padding) % 256 ) for i in range(pos+1,bsize) ] )
+    # brute force pos with all 256 possible bytes
+    for byte in range(256):
+        brute = chr((ord(prev[pos]) ^ padding ^ byte) % 256)
+        temp = prev[:pos] + brute + ptail + cur
+        # if a byte succeeds, it may be a False positive
+        # so we recursively check using DFS, for all possible matches
+        # we use backtracking to ensure that a wrong path is not
+        # fully enumerated
+        if c17_decrypt_oracle(temp, iv):
+            if solve_po(cur, prev, pos - 1, guess + chr(byte), padding + 1, bsize, iv, sol):
+                return True
+    return False
 
