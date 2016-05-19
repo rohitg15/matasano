@@ -7,6 +7,22 @@ from random import randint
 import json
 
 
+
+class Counter:
+    def __init__(self):
+        self.ctr = 0x0
+        self.nonce = 0x0
+        self.counter = ''
+
+    def __call__(self):
+        self.counter = struct.pack('<Q', self.nonce)
+        self.counter += struct.pack('<Q', self.ctr)
+        self.ctr += 1
+        if self.ctr == 0x0:
+            self.nonce += 1
+        return self.counter
+
+
 def base64_to_hex(data):
     return base64.b64decode(data).encode('hex')
 
@@ -353,3 +369,42 @@ def solve_po(cur, prev, pos, guess, padding, bsize, iv, sol):
                 return True
     return False
 
+
+def aes_ctr_encrypt(plaintext, key, bsize=16):
+    # divide cipher bytes into blocks of size 16
+    pt = bytearray(plaintext)
+    blen = len(pt)
+    blocks = [pt[i * blen: (i + 1) * blen] for i in range(blen / bsize)]
+    # compute AES CTR encryption of each part
+    nonce = 0x0
+    ctr = 0x0
+    ct = []
+    for block in blocks:
+        counter = struct.pack('<Q', nonce)
+        counter += struct.pack('<Q', ctr)
+        cipher = AES.new(key, AES.MODE_CTR, counter=Counter())
+        ct.append(cipher.encrypt(plaintext))
+        ctr += 1
+        if ctr == 0x0:
+            nonce += 1
+    return ''.join(ct)
+
+
+def aes_ctr_decrypt(ciphertext, key, bsize=16):
+    # divide ciphertext into blocks of size 16
+    ct = bytearray(ciphertext)
+    blen = len(ct)
+    blocks = [ct[i * blen: (i + 1) * blen] for i in range(blen / bsize)]
+    # compute AES CTR decryption for each part
+    nonce = 0x0
+    ctr = 0x0
+    pt = []
+    for block in blocks:
+        #counter = struct.pack('<Q', nonce)
+        #counter += struct.pack('<Q', ctr)
+        cipher = AES.new(key, AES.MODE_CTR, counter=Counter())
+        pt.append(cipher.decrypt(ciphertext))
+        #ctr += 1
+        #if ctr == 0x0:
+        #    nonce += 1
+    return ''.join(pt)

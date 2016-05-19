@@ -1,6 +1,7 @@
 import base
 
 
+
 def c17(filename):
     """
     This program performs the padding oracle attack
@@ -29,5 +30,16 @@ def c17(filename):
         print ''.join(sol)
 
 
+def c18():
+    """
+    This program performs AES decryption in CTR mode
+    """
+    ciphertext = base.base64_to_hex("L77na/nrFsKvynd6HzOoG7GHTLXsTVu9qvY/2syLXzhPweyyMTJULu/6/kXX0KSvoOLSFQ==").decode('hex')
+    key = "YELLOW SUBMARINE"
+    bkey = bytearray("YELLOW SUBMARINE")
+    print base.aes_ctr_decrypt(ciphertext, key, 16)
+
+
 if __name__ == "__main__":
-  c17("ip17.txt")
+  #c17("ip17.txt")
+  c18()
