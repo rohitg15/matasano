@@ -371,40 +371,38 @@ def solve_po(cur, prev, pos, guess, padding, bsize, iv, sol):
 
 
 def aes_ctr_encrypt(plaintext, key, bsize=16):
-    # divide cipher bytes into blocks of size 16
-    pt = bytearray(plaintext)
-    blen = len(pt)
-    blocks = [pt[i * blen: (i + 1) * blen] for i in range(blen / bsize)]
-    # compute AES CTR encryption of each part
-    nonce = 0x0
-    ctr = 0x0
-    ct = []
-    for block in blocks:
-        counter = struct.pack('<Q', nonce)
-        counter += struct.pack('<Q', ctr)
-        cipher = AES.new(key, AES.MODE_CTR, counter=Counter())
-        ct.append(cipher.encrypt(plaintext))
-        ctr += 1
-        if ctr == 0x0:
-            nonce += 1
-    return ''.join(ct)
+    cipher = AES.new(key, AES.MODE_CTR, counter=Counter())
+    return cipher.encrypt(plaintext)
 
 
 def aes_ctr_decrypt(ciphertext, key, bsize=16):
-    # divide ciphertext into blocks of size 16
-    ct = bytearray(ciphertext)
-    blen = len(ct)
-    blocks = [ct[i * blen: (i + 1) * blen] for i in range(blen / bsize)]
-    # compute AES CTR decryption for each part
+    cipher = AES.new(key, AES.MODE_CTR, counter=Counter())
+    return cipher.decrypt(ciphertext)
+
+def aes_ctr_crypt(text, key):
+    bsize = 16
+    btext = bytearray(text)
+    blen = len(btext)
+    size = 1 + (blen / bsize)
+    blocks = [btext[i * bsize: (i + 1) * bsize] for i in range(size)]
+    # compute AES CTR encryption of each part
     nonce = 0x0
     ctr = 0x0
-    pt = []
+    op = []
+    cipher = AES.new(key, AES.MODE_ECB)
     for block in blocks:
-        #counter = struct.pack('<Q', nonce)
-        #counter += struct.pack('<Q', ctr)
-        cipher = AES.new(key, AES.MODE_CTR, counter=Counter())
-        pt.append(cipher.decrypt(ciphertext))
-        #ctr += 1
-        #if ctr == 0x0:
-        #    nonce += 1
-    return ''.join(pt)
+        keystream = struct.pack('<QQ', nonce, ctr)
+        keystream_bytes = bytearray(cipher.encrypt(keystream))
+        op.extend(equal_size_xor(block, keystream_bytes))
+        ctr += 1
+        if ctr == 0x0:
+            nonce += 1
+    return ''.join([chr(byte) for byte in op])
+
+
+def aes_ctr_manual_encrypt(plaintext, key):
+    return aes_ctr_crypt(plaintext, key)
+
+
+def aes_ctr_manual_decrypt(ciphertext, key):
+    return aes_ctr_crypt(ciphertext, key)
