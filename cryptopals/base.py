@@ -8,38 +8,24 @@ import json
 
 
 
-class Counter:
-    def __init__(self):
-        self.ctr = 0x0
-        self.nonce = 0x0
-        self.counter = ''
 
-    def __call__(self):
-        self.counter = struct.pack('<Q', self.nonce)
-        self.counter += struct.pack('<Q', self.ctr)
-        self.ctr += 1
-        if self.ctr == 0x0:
-            self.nonce += 1
-        return self.counter
-
-
+# convert base64 to hex
 def base64_to_hex(data):
     return base64.b64decode(data).encode('hex')
 
-
+# convert hex to base64
 def hex_to_base64(data):
     return base64.b64encode(data.decode('hex'))
 
-
+# convert ASCII string to bytearray
 def ASCII_to_bytearray(data):
     return bytearray(data)
 
-
+# convert bytearray to ASCII
 def bytearray_to_ASCII(data):
-    op = [chr(byte) for byte in data]
-    return ''.join(op)
+    return ''.join([chr(byte) for byte in data])
 
-
+#
 def AES_ECB_encrypt(plain_text, bkey):
     """
         data    :   bytearray
@@ -248,6 +234,7 @@ def encryption_oracle(input):
 
     return key, iv, ciphertext
 
+# identify ECB/CBC mode by inspecting the ciphertext for repetitions
 def detect_block_cipher_mode(ciphertext):
     block_size = 16
     blocks = [ciphertext[i * block_size : (i + 1) * block_size] for i in range(len(ciphertext) / block_size)]
@@ -288,7 +275,6 @@ def profile_for(email):
     filtered_email = sanitize(email)
     uid = randint(0, 100)
     role = 'user'
-
     profile = 'email=' + filtered_email + "&" + "uid=" + uid + "&role=" + role
 
 
@@ -298,6 +284,7 @@ def quote(s):
     return temp
 
 
+# encrypt under AES CBC mode - byte flipping challenge
 def enc_input(data):
 
     prefix = "comment1=cooking%20MCs;userdata="
@@ -310,6 +297,7 @@ def enc_input(data):
     return encryptor.encrypt(padded_plaintext)
 
 
+# decrypt under AES CBC mode - byte flipping challenge
 def dec_input(data):
 
     iv = "A" * 16
@@ -320,6 +308,7 @@ def dec_input(data):
     return plaintext.find(";admin=true")
 
 
+# function that checks for valid PKCS#7 padding
 def is_padded(s):
     # if PKCS#7 padding were used then the last byte must indicate the same
     pad_chr = s[-1]
@@ -335,6 +324,7 @@ def is_padded(s):
     return True
 
 
+# AES CBC encryption oracle for challenge 17
 def c17_encrypt_oracle(pt):
     key = ecb_key
     iv = Random.get_random_bytes(16)
@@ -343,6 +333,7 @@ def c17_encrypt_oracle(pt):
     return cipher.encrypt(padded_pt), iv
 
 
+# AES CBC decryption oracle for challenge 17
 def c17_decrypt_oracle(ct, iv):
     key = ecb_key
     cipher = AES.new(key, AES.MODE_CBC, iv)
@@ -350,6 +341,10 @@ def c17_decrypt_oracle(ct, iv):
     return is_padded(pt)
 
 
+# function for exploiting the padding oracle vulnerability
+# recursively guess a 'tail' window of a block, by modifying the byte
+# in the previous block. Use backtracking to assert that valid padding
+# is not a false positive
 def solve_po(cur, prev, pos, guess, padding, bsize, iv, sol):
     if pos < 0 or pos >= bsize:
         sol.append(guess[::-1])
@@ -369,16 +364,38 @@ def solve_po(cur, prev, pos, guess, padding, bsize, iv, sol):
                 return True
     return False
 
+# this is a class overriding the __call__ method
+# so that its objects can be called as functions
+# it maintains internal state - nonce, ctr
+class Counter:
+    def __init__(self, nonce=0x0):
+        self.ctr = 0x0
+        self.nonce = nonce
+        self.counter = ''
 
-def aes_ctr_encrypt(plaintext, key, bsize=16):
-    cipher = AES.new(key, AES.MODE_CTR, counter=Counter())
+    def __call__(self):
+        self.counter = struct.pack('<Q', self.nonce)
+        self.counter += struct.pack('<Q', self.ctr)
+        self.ctr += 1
+        if self.ctr == 0x0:
+            self.nonce += 1
+        return self.counter
+
+
+# encrypt under AES in CTR mode
+def aes_ctr_encrypt(plaintext, key, nonce, bsize=16):
+    cipher = AES.new(key, AES.MODE_CTR, counter=Counter(nonce))
     return cipher.encrypt(plaintext)
 
 
-def aes_ctr_decrypt(ciphertext, key, bsize=16):
-    cipher = AES.new(key, AES.MODE_CTR, counter=Counter())
+# decrypt under AES in CTR mode
+def aes_ctr_decrypt(ciphertext, key, nonce, bsize=16):
+    cipher = AES.new(key, AES.MODE_CTR, counter=Counter(nonce))
     return cipher.decrypt(ciphertext)
 
+
+# generic function to encrypt keystream and XOR with given text
+# used for emulating AES CTR mode using AES ECB mode
 def aes_ctr_crypt(text, key):
     bsize = 16
     btext = bytearray(text)
@@ -400,9 +417,27 @@ def aes_ctr_crypt(text, key):
     return ''.join([chr(byte) for byte in op])
 
 
+# encrypt under AES in CTR mode
 def aes_ctr_manual_encrypt(plaintext, key):
     return aes_ctr_crypt(plaintext, key)
 
 
+# decrypt under AES in CTR mode
 def aes_ctr_manual_decrypt(ciphertext, key):
     return aes_ctr_crypt(ciphertext, key)
+
+
+# check if all characters in the text are ASCII
+# expects a byte array
+def is_all_ascii(text):
+    charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-,;: "
+    for byte in text:
+        if chr(byte) not in charset:
+            return False
+    return True
+
+
+def expand_ctr_key(cipher, key, guess, pos):
+    cipher = bytearray(cipher)
+    guess = bytearray(guess)
+    return key[:pos] + ([cipher[pos + i] ^ guess[i] for i in range(len(guess))])
