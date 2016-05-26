@@ -12,80 +12,80 @@ def c1():
 def c2():
     input1 = "1c0111001f010100061a024b53535009181c".decode('hex')
     input2 = "686974207468652062756c6c277320657965".decode('hex')
-    
+
     b1 = bytearray(input1)
     b2 = bytearray(input2)
     b = base.equal_size_xor(b1,b2)
-    
+
     op = base.bytearray_to_ASCII(b).encode('hex')
     expected = "746865206b696420646f6e277420706c6179"
     if op == expected:
         print "c2 successful!"
     else :
         print "c2 failed!"
-        
-        
+
+
 def c3():
     input = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736".decode('hex')
     binput = bytearray(input)
-    
+
     print base.brute_single_byte_xor_heuristic(binput)
-        
+
     # answer    :   "Cooking MC's like a pound of bacon", key = 88
-    
-    
+
+
 def c4(filename):
     f = open(filename, "r")
     data = f.readlines()
     f.close()
-    
+
     points = {}
     for line in data:
         plaintext,score,key = base.brute_single_byte_xor_heuristic(bytearray(line.strip('\n').decode('hex')))
         points[plaintext] = (score,key)
-        
+
     pt = max(points, key=lambda k: points[k][0])
     print (pt, points[pt][0] , points[pt][1])
     # answer    :   "Now that the party is jumping" , key = 53
-    
-    
+
+
 def c5():
     input = '''Burning 'em, if you ain't quick and nimble
 I go crazy when I hear a cymbal'''
-    
+
     expected = '''0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f'''
-    
+
     key = "ICE"
-    
+
     boutput = base.repeating_key_xor(bytearray(input),bytearray(key))
-    
+
     output = base.bytearray_to_ASCII(boutput).encode('hex')
-    
+
     #print output
-    
+
     if output == expected:
         print "c5 successful!"
     else:
         print "c5 failed!"
-        
-        
-        
+
+
+
 def c6(filename):
     f = open(filename,"r")
     b64data = f.readlines()
     f.close()
-    
+
     data = []
     for line in b64data:
         data.append(base.base64_to_hex(line.strip('\n')).decode('hex'))
     data = ''.join(data)
-    
+
     key_size = base.brute_repeating_key_xor(bytearray(data))
     tbytes = base.transpose(bytearray(data),key_size)
-    
+
     print base.brute_single_byte_xor(tbytes[0:key_size])
-        
-        
+
+
 def c7(filename):
     f = open(filename,"r")
     data = f.readlines()
@@ -93,11 +93,11 @@ def c7(filename):
 
     data = base.base64_to_hex(''.join(data)).decode('hex')
     key = "YELLOW SUBMARINE"
-   
+
     bplaintext = base.AES_ECB_decrypt(data,key)
-    
+
     print bplaintext
-    
+
 def c8(filename):
     key = "YELLOW SUBMARINE"
     f = open(filename,"r")
@@ -118,12 +118,12 @@ def c8(filename):
                 break
             else:
                 vis[block] = True
-            
+
     for line,num in op:
         print line , num
     #print base.AES_ECB_decrypt(max_key.decode('hex'), key)
-    
-    
+
+
 
 if __name__ == "__main__":
   #  c1()
@@ -133,5 +133,5 @@ if __name__ == "__main__":
   #  c5()
   #  c7("ip7.txt")
   #  c6("ip6.txt")
-  c8("ip8.txt")
-  
+  c8("../inputs/ip8.txt")
+

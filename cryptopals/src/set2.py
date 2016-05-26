@@ -193,7 +193,7 @@ def c14():
     # read the encrypted target string
   target_string = ''
   blk_size = 16
-  with open("ip12.txt", "r") as file:
+  with open("../inputs/ip12.txt", "r") as file:
       target_string = file.read().strip('\n')
   target_string = base.base64_to_hex(target_string).decode('hex')
   # generate a random prefix

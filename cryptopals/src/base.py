@@ -436,6 +436,13 @@ def is_all_ascii(text):
             return False
     return True
 
+def is_all_ascii_expanded(text):
+    charset = """abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-,;"'/\!: """
+    for byte in text:
+        if chr(byte) not in charset:
+            return False
+    return True
+
 
 def expand_ctr_key(cipher, key, guess, pos):
     cipher = bytearray(cipher)
