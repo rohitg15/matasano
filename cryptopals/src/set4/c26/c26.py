@@ -1,6 +1,6 @@
 import sys
 import os
-script_path = "../base.py"
+script_path = "../../"
 sys.path.append(os.path.abspath(script_path))
 import base
 from Crypto import Random
@@ -29,7 +29,7 @@ class Session:
             if kv.find(self.admin_key) != -1:
                 return True
         return False
-        
+
 def get_admin_privilege(input_string):
     """ Perform bit flipping on CTR encrypted token """
     # get an encrypted cookie from the oracle
@@ -57,10 +57,11 @@ def get_admin_privilege(input_string):
 if __name__ == "__main__":
     argc = len(sys.argv)
     if argc != 2:
-        print "usage:%s input_string" , sys.argv[0]
+        print "usage:%s input_string" % (sys.argv[0])
         exit(0)
     if len(sys.argv[1]) < len(";admin=true"):
-        print "minimum input length is %d", len(";admin=true")
+        print "minimum input length is ", len(";admin=true")
+        exit(0)
     if get_admin_privilege(sys.argv[1]):
         print "Logged in as administrator"
     else:

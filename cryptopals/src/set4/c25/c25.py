@@ -1,4 +1,7 @@
 import sys
+import os
+script_path = "../../"
+sys.path.append(os.path.abspath(script_path))
 from Crypto import Random
 from Crypto.Cipher import AES
 import base
@@ -13,11 +16,10 @@ def encrypt_file(filename, key, nonce):
     data = ""
     with open(filename, "r") as file:
         data = file.read()
-
     # encrypt plaintext
     return base.aes_ctr_manual_encrypt(data, key)
 
-# decrypt the ciphertext using AES CTR 
+# decrypt the ciphertext using AES CTR
 def decrypt(ciphertext, key, nonce):
     return base.aes_ctr_manual_decrypt(ciphertext, key)
 
@@ -50,7 +52,7 @@ def edit(ciphertext, key, offset, newtext):
     for i in range(0, block_start):
         output_bytes = output_bytes + cipher_blocks[i]
         num_blocks = num_blocks + 1
-        
+
     # encrypt the blocks of the new plaintext and increment counter and nonce asap
     cipher = AES.new(key, AES.MODE_ECB)
     for i in range(block_start, block_end):
@@ -69,7 +71,7 @@ def edit(ciphertext, key, offset, newtext):
     for i in range(block_end + 1, remaining):
         output_bytes = output_bytes + cipher_blocks[i]
         num_blocks = num_blocks + 1
-    
+
     cipher_output = ''.join([chr(byte) for byte in output_bytes])
     return cipher_output
 
@@ -78,8 +80,8 @@ if __name__ == "__main__":
     argc = len(sys.argv)
     if argc != 2:
         print "usage: %s filename" % (sys.argv[0])
-    
-    ciphertext = encrypt_file(sys.argv[1], key_base, nonce)   
+
+    ciphertext = encrypt_file(sys.argv[1], key_base, nonce)
     newtext = "A" * len(ciphertext)
     ciphertext2 = edit(ciphertext, key_base, 0, newtext)
     cx = base.equal_size_xor(bytearray(ciphertext), bytearray(ciphertext2))
@@ -87,4 +89,4 @@ if __name__ == "__main__":
     plaintext = ''.join([chr(byte) for byte in px])
     print plaintext
 
-    
+
