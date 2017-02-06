@@ -30,10 +30,9 @@ class Sha1:
 
         # stage 1: message (including the padding must be a multiple of 64 bytes)
         #          Last 8 bytes must represent the original length of the message in Big Endian
-        #          The bytes between the message and the begining of the last 8 bytes must be filled with a 
-        #          1 (in Big Endian) followed by 0s until the overall length of the padded message is a multiple
-        #          of 64 bytes
-
+        #          The bytes between the message and the begining of the last 8 bytes must be filled with a 1 (in Big Endian)
+        #          followed by 0s until the overall length of the padded message is a multiple of 64 bytes
+       
         mbytes = bytearray(message)
         ml = len(mbytes)
         padding = chr(128) + chr(0) * (55 - len(mbytes) % 64)
@@ -47,9 +46,8 @@ class Sha1:
         padded_mbytes = mbytes + bytearray(padding) + bytearray(struct.pack('>Q', 8 * len(mbytes)))
        
         # stage 2: divide the padded message into 64 byte chunks
-        #chunks = [padded_mbytes[i * self.base_len : (i + 1) * self.base_len] for i in range(len(padded_mbytes) / self.base_len)]
-        chunks = [padded_mbytes[i:i+64] for i in range(0, len(padded_mbytes), 64)]
-
+        chunks = [padded_mbytes[i * self.base_len : (i + 1) * self.base_len] for i in range(len(padded_mbytes) / self.base_len)]
+        
         for chunk in chunks:
             # break chunk into 16 four byte Big Endian words
             wsize = 4
@@ -105,10 +103,13 @@ class Sha1:
         
     
 if __name__ == "__main__":
-    hash = Sha1()
     
-    # test message with a bitstring
-    message = "hello world!"
+    argc = len(sys.argv)
+    if argc != 2:
+        print "usage: %s message" % (sys.argv[0])
+        exit(0)
+    message = sys.argv[1]
+    hash = Sha1() 
     print "message  : " + message
     print "expected : " + hashlib.sha1(message).hexdigest()
     print "got      : "  + hash.get_hex_digest(message)
