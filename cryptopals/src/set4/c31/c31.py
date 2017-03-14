@@ -63,25 +63,31 @@ class WebServer:
             return False
         for b1, b2 in zip(exp_signature, real_signature):
             # artificial timing delay here
-            time.sleep(0.05)
+            time.sleep(0.5)
+            time.slee
             if b1 != b2:
                 return False
         return True
             
     # compare the expected and actual signatures from the request and generate a response
     def get_response(self, request):
+        # accept GET verb, with file and signature query parameters
+        verb_matches = re.findall("^GET [a-zA-Z0-9& ]*", request)
+        if len(verb_matches) == 0:
+            return """HTTP/1.1 401 Bad Request"""
+        
+        # signature is restricted to 40 Hex characters
         matches = re.findall("file=[a-zA-Z0-9 ]*&signature=[a-zA-Z0-9]{40}$", request)
         if (len(matches) != 1):
-            return """HTTP/1.1 400 Bad Request"""
+            return """HTTP/1.1 401 Bad Request"""
         kvp = matches[0].split('&')
         filename = kvp[0][5:]
         signature = kvp[1][10:]
-        print "file: " + filename
         expected_signature = self.mac_helper.get_hex_digest(filename)
         print expected_signature
         if self.insecure_compare(expected_signature, signature) == False:
-            return """HTTP/1.1 401 Unauthorized request"""
-        return """HTTP/1.1 200 OK\n Hello World"""
+            return 401
+        return 200
 
 
 
