@@ -41,50 +41,39 @@ class WebServer:
         self.sock.listen(backlog)
 
         # generate a key that is used to sign all messages
-        key = "bar"
+        key = 'bar'
         self.mac_helper = Hmac(key, 64)
 
         print "serving HTTP on port %s" % self.port
         while True:
             # wait for incoming client connections
             client_conn, client_addr = self.sock.accept()
-            request = client_conn.recv(1024)
-            print request
-            
-            # validate the request and obtain response
-            response = self.get_response(request)
-            print "sending response to client: " + response
-            print "\n\n"
-            client_conn.sendall(response)
+            for times in range(1):
+                request = client_conn.recv(1024)
+                # validate the request and obtain response
+                response = self.get_response(request)
+                client_conn.sendall(bytearray(response))
             client_conn.close()
     
     def insecure_compare(self, exp_signature, real_signature):
         if len(exp_signature) != len(real_signature):
             return False
-        for b1, b2 in zip(exp_signature, real_signature):
+        for b1, b2 in zip(bytearray(exp_signature.decode('hex')), bytearray(real_signature.decode('hex'))):
             # artificial timing delay here
             time.sleep(0.5)
-            time.slee
             if b1 != b2:
                 return False
         return True
             
     # compare the expected and actual signatures from the request and generate a response
     def get_response(self, request):
-        # accept GET verb, with file and signature query parameters
-        verb_matches = re.findall("^GET [a-zA-Z0-9& ]*", request)
-        if len(verb_matches) == 0:
-            return """HTTP/1.1 401 Bad Request"""
-        
-        # signature is restricted to 40 Hex characters
         matches = re.findall("file=[a-zA-Z0-9 ]*&signature=[a-zA-Z0-9]{40}$", request)
         if (len(matches) != 1):
-            return """HTTP/1.1 401 Bad Request"""
+            return """HTTP/1.1 500 Bad Request"""
         kvp = matches[0].split('&')
         filename = kvp[0][5:]
         signature = kvp[1][10:]
         expected_signature = self.mac_helper.get_hex_digest(filename)
-        print expected_signature
         if self.insecure_compare(expected_signature, signature) == False:
             return 401
         return 200
