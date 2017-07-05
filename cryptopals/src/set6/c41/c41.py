@@ -53,10 +53,6 @@ class MessageServer:
         
         return m
 
-        
-        # return the decrypted string to the user
-#        return str(hex(m))[2:-1].decode('hex')
-
 
 
 if __name__ == "__main__":
