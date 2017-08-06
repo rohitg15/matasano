@@ -1,4 +1,5 @@
 
+import math
 
 
 class CryptoMath:
@@ -84,6 +85,21 @@ class CryptoMath:
         if mod:
             p = p % N
         return p
+
+    @staticmethod
+    def get_cube_root(n):
+        """Finds the cube root of n using binary search."""
+        lo = 0
+        hi = n
+
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if mid**3 < n:
+                lo = mid + 1
+            else:
+                hi = mid
+
+        return lo
 
 
 class RSAHelper:
