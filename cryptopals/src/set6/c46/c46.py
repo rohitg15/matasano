@@ -4,10 +4,6 @@ from Crypto.Util.number import getPrime
 from crypto_math import CryptoMath
 import base64
 
-
-
-
-
 class ParityOracle:
     def __init__(self, rsa_key):
         self.rsa_key = rsa_key
@@ -23,9 +19,6 @@ class ParityOracle:
         decrypted_plaintext = self.rsa_key.decrypt( ciphertext )
         return ( self.is_decryption_valid(decrypted_plaintext), decrypted_plaintext )
 
-    
-
-
 def get_num_bits(x):
     count = 0
     while x != 0:
@@ -33,10 +26,7 @@ def get_num_bits(x):
         x = x // 2
     return count
 
-
-
 def binary_search(ct, p):
-    
     lo = 0
     hi = p.rsa_key.n
     c = int( ct.encode( 'hex' ), 16 )
@@ -44,34 +34,22 @@ def binary_search(ct, p):
     c = CryptoMath.mod_mul( c, prod, p.rsa_key.n ) 
     num_bits = get_num_bits(c)
 
-    print "num bits %d" % (num_bits)
-    print c.bit_length()
-    #return 
-
-
-
-    while lo < hi :
+    while num_bits > 0 and lo < hi :
         mid = lo + ( ( hi - lo ) // 2 )
-
-        # convert integer to string
-        cipher = hex( c )[2:-1]
-        if len( cipher ) % 2 == 1:
-            cipher = '0' + cipher
+        cipher = CryptoMath.lint_to_hex_str( c )
         ciphertext = cipher.decode( 'hex' )        
         is_even, _ = p.decrypt( ciphertext )
+        # use parity to determine whether or not the plaintext
+        # wraps the modulus, and search the corresponding half
         if is_even:
-            # did not wrap modulus
             hi = mid
         else:
-            # wrapped modulus
             lo = mid
         
-        dec = hex( hi )[2:-1]
-        if len( dec ) % 2 == 1:
-            dec = '0' + dec
+        dec = CryptoMath.lint_to_hex_str( hi )
         print dec.decode( 'hex' )
 
-        # multiple c
+        # multiply c
         c = CryptoMath.mod_mul( c, prod, p.rsa_key.n ) 
         num_bits = num_bits - 1
     return hi
@@ -95,12 +73,6 @@ if __name__ == "__main__":
     msg = base64.b64decode(msg_b64)
 
     ct = p.encrypt(msg)
-    pt = binary_search(ct[0], p)
-    for x in range(pt - 2000 , pt):
-        dec = hex( x )[2:-1]
-        if len( dec ) % 2 == 1:
-            dec = '0' + dec
-        print dec.decode( 'hex' )
-        
+    binary_search(ct[0], p)
 
     

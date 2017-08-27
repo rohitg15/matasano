@@ -4,6 +4,13 @@ import math
 
 class CryptoMath:
     @staticmethod
+    def lint_to_hex_str(x):
+        h = hex(x)[2:-1]
+        if (len(h) & 1) == 1:
+            h = '0' + h
+        return h
+
+    @staticmethod
     def egcd(a, n):
         t = 0
         newt = 1
