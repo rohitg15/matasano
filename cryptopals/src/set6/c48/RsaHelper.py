@@ -5,7 +5,7 @@ from crypto_math import CryptoMath
 
 class CryptographicException(Exception):
     def __init__(self, message):
-        super(CryptographicException, self).__init__(message)
+        Exception.__init__(self, message)
         self.message = message
 
 class RsaHelper:
@@ -18,7 +18,16 @@ class RsaHelper:
         """
         self.rsa = RSA.generate(bits = numBits, e = e)
         self.cipher = PKCS1_v1_5.new(self.rsa)
-        
+
+
+    def __init__(self, rsa_key):
+        """
+            Initializes RSA cryptosystem with the given key
+
+            rsa_key :   object of type Crypto.PublicKey.RSA with public and private keys
+        """
+        self.rsa = rsa_key
+        self.cipher = PKCS1_v1_5.new(self.rsa)
 
     def encrypt(self, messageStr):
         """

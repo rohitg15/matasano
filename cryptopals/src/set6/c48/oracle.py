@@ -8,9 +8,12 @@ class RsaOracle(RsaHelper):
         RsaOracle subclasses RsaHelper to abstract implementation
         details from the callers.
     """
-    def __init__(self, numBits, e = 65537):
-        super(RsaOracle, self).__init__(numBits, e)
-        self.size_bytes = self.rsa.n.bit_length() // 8
+    # def __init__(self, numBits, e = 65537):
+    #     RsaHelper.__init__(self, numBits, e)
+    #     self.size_bytes = self.rsa.n.bit_length() // 8
+    def __init__(self, rsa_key):
+        RsaHelper.__init__(self, rsa_key)
+        self.size_bytes = self.rsa.n.bit_length() >> 3
 
 
     @staticmethod
@@ -40,7 +43,7 @@ class RsaOracle(RsaHelper):
             messageStr  :   String denoting input message
             Returns     :   ByteString containing RSA encrypted ciphertext
         """
-        return super(RsaOracle, self).encrypt(messageStr)
+        return RsaHelper.encrypt(self, messageStr)
 
     def get_response(self, ciphertextBytes):
         """
@@ -55,7 +58,7 @@ class RsaOracle(RsaHelper):
                                 in the decrypted string was invalid.
         """
         try:
-            decrypted = super(RsaOracle, self).decrypt(ciphertextBytes)
+            decrypted = RsaHelper.decrypt(self, ciphertextBytes)
             print("Decryption succeeded!")
             return True
         except:

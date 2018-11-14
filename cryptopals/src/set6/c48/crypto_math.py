@@ -46,7 +46,7 @@ class CryptoMath:
                 # odd number
                 x = (x + y) % n
             y = (y + y) % n
-            b = b // 2
+            b = b >> 1
         return x % n
 
     @staticmethod
@@ -63,7 +63,7 @@ class CryptoMath:
                 # odd number
                 x = CryptoMath.mod_mul(x, y, n)
             y = CryptoMath.mod_mul(y, y, n)
-            b = b // 2
+            b = b >> 1
         return x % n
 
     @staticmethod
@@ -108,7 +108,7 @@ class CryptoMath:
         hi = n
 
         while lo < hi:
-            mid = (lo + hi) // 2
+            mid = (lo + hi) >> 1
             if mid**3 < n:
                 lo = mid + 1
             else:
@@ -122,7 +122,7 @@ class CryptoMath:
 
     @staticmethod
     def int_to_bytes(x):
-        return x.to_bytes((x.bit_length() + 7) // 8, 'big')
+        return x.to_bytes((x.bit_length() + 7) >> 3, 'big')
 
     @staticmethod
     def string_to_bytes(s):
